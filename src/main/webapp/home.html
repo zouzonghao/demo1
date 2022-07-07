@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Home</title>
+    <style>
+        .el-table .warning-row {
+            background: #fefaff;
+        }
+
+        .el-table .success-row {
+            background: #f8f5fa;
+        }
+    </style>
+
+</head>
+<body>
+
+<div id="app">
+
+    <!--搜索栏-->
+
+    <el-form :inline="true"  class="demo-form-inline" @submit.native.prevent>
+        </el-form-item>
+        <el-form-item label="按名称搜索">
+            <el-input v-model="sname" placeholder="名称" @keyup.enter.native="selectAll"></el-input>
+        </el-form-item>
+        </el-form-item>
+        <el-form-item label="按描述搜索">
+            <el-input v-model="dname" placeholder="描述" @keyup.enter.native="selectAll"></el-input>
+        </el-form-item>
+
+        <el-form-item>
+            <el-button type="info" @click="selectAll" plain icon="el-icon-search" >搜素</el-button>
+        </el-form-item>
+        <el-form-item>
+            <el-button type="info" @click="reset" plain icon="el-icon-search" >重置条件</el-button>
+        </el-form-item>
+    </el-form>
+
+    <!--按钮-->
+
+    <el-button type="danger" plain icon="el-icon-delete" @click="mdel">批量删除</el-button>
+    <el-button type="primary" plain icon="el-icon-edit" @click="dialogFormVisible  = true"> 新增</el-button>
+    <el-button type="primary" plain icon="el-icon-edit" @click="dialogFormVisible4  = true"> 批量修改地址</el-button>
+    <el-button :type="playtype" icon="el-icon-video-play" plain @click="bs">播放/暂停</el-button>
+    <!--新增对话框    -->
+
+    <el-dialog title="新增项目" :visible.sync="dialogFormVisible" center>
+
+        <el-form :model="item">
+            <el-form-item label="新增项名称" :label-width="formLabelWidth">
+                <el-input v-model="item.name" autocomplete="off" placeholder="名称"></el-input>
+            </el-form-item>
+            <el-form-item label="新增项描述" :label-width="formLabelWidth">
+                <el-input v-model="item.describe" autocomplete="off" placeholder="描述"></el-input>
+            </el-form-item>
+            <el-form-item label="新增项URL" :label-width="formLabelWidth">
+                <el-input v-model="item.url" autocomplete="off" placeholder="url"></el-input>
+            </el-form-item>
+            <div align="center">
+                <el-tag type="info" center>示例：http://[]:12345/local/ </el-tag>
+            </div>
+        </el-form>
+
+        <div slot="footer" class="dialog-footer">
+            <el-button type="primary" @click="onAddItem">确 定</el-button>
+            <el-button @click="dialogFormVisible = false">取 消</el-button>
+        </div>
+    </el-dialog>
+
+    <!--修改对话框    -->
+
+    <el-dialog title="修改项目" :visible.sync="dialogFormVisible2" center>
+
+        <el-form :model="item2">
+            <el-form-item label="修改后名称" :label-width="formLabelWidth">
+                <el-input v-model="item2.name" autocomplete="off" placeholder="名称"></el-input>
+            </el-form-item>
+            <el-form-item label="修改后描述" :label-width="formLabelWidth">
+                <el-input v-model="item2.describe" autocomplete="off" placeholder="描述"></el-input>
+            </el-form-item>
+            <el-form-item label="修改后URL" :label-width="formLabelWidth">
+                <el-input v-model="item2.url" autocomplete="off" placeholder="url"></el-input>
+            </el-form-item>
+
+        </el-form>
+
+        <div slot="footer" class="dialog-footer">
+            <el-button type="primary" @click="onAddItem2">确 定</el-button>
+            <el-button @click="dialogFormVisible2 = false">取 消</el-button>
+        </div>
+    </el-dialog>
+
+    <!--批量修改ipv6地址    -->
+
+    <el-dialog title="批量修改地址" :visible.sync="dialogFormVisible4" center >
+        <el-form >
+            <el-form-item label="IPV6地址" :label-width="formLabelWidth">
+                <el-input v-model="item4" placeholder="带英文双引号，不带中括号"></el-input>
+            </el-form-item>
+        </el-form>
+        <div align="center">
+            <el-tag type="info" center>示例："2409:8a38:981d:dce1:e8dd:b85b:9ed2:c271" </el-tag>
+        </div>
+        <div slot="footer" class="dialog-footer">
+            <el-button type="primary" @click="onAddItem4">确 定</el-button>
+            <el-button @click="dialogFormVisible4 = false">取 消</el-button>
+        </div>
+    </el-dialog>
+
+    <!--播放对话框    -->
+
+    <el-dialog :visible.sync="dialogFormVisible3" center fullscreen="true">
+
+        <div slot="footer" class="dialog-footer">
+            <el-button type="danger" icon="el-icon-close" circle @click="dialogFormVisible3 = false"></el-button>
+        </div>
+        <video :src="item3url" controls width="100%" autoplay id="play"></video>
+    </el-dialog>
+
+    <!--表格-->
+
+    <template>
+        <el-table
+                :data="tableData"
+                style="width: 100%"
+                :row-class-name="tableRowClassName"
+                @selection-change="handleSelectionChange"
+                row-style="{height:'24px'}"
+                :cell-style="{padding:'0px'}"
+                style="font-size:16px">
+            <el-table-column
+                    type="selection"
+                    width="80"
+                    align="center">
+            </el-table-column>
+<!--            <el-table-column-->
+<!--                    type="index"-->
+<!--                    width="80"-->
+<!--            >-->
+<!--            </el-table-column>-->
+            <el-table-column
+                    prop="name"
+                    label="名称"
+                    width="150"
+                    show-overflow-tooltip="true">
+            </el-table-column>
+            <el-table-column
+                    prop="describe"
+                    label="描述"
+                    width="350"
+                    show-overflow-tooltip="true"
+            >
+            </el-table-column>
+            <el-table-column
+                    label="打开"
+                    align="center">
+                <template slot-scope="scope">
+                    <el-row>
+                        <el-button type="success" plain @click="play(scope.row.url)">打开</el-button>
+
+                    </el-row>
+                </template>
+            </el-table-column>
+            <el-table-column
+                    label="操作"
+                    align="center">
+                <template slot-scope="scope">
+                    <el-row>
+                        <el-button type="primary" plain @click="update(scope.row)">修改</el-button>
+                        <el-button type="danger" plain @click="del(scope.row)">删除</el-button>
+                    </el-row>
+                </template>
+            </el-table-column>
+        </el-table>
+    </template>
+
+    <!--分页工具条    -->
+
+    <el-pagination
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+            :current-page="currentPage"
+            :page-sizes="[10, 20, 30, 40]"
+            :page-size="10"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="totalCounts">
+    </el-pagination>
+
+</div>
+
+
+<script src="js/vue.js"></script>
+<script src="js/axios-0.18.0.js"></script>
+<script src="element-ui/lib/index.js"></script>
+<link rel="stylesheet" href="element-ui/lib/theme-chalk/index.css">
+<script>
+    new Vue({
+        el: "#app",
+        //生命周期加载时执行
+        mounted() {
+            this.selectAll();
+        },
+        methods: {
+            //重置条件
+            reset(){
+                this.sname = '';
+                this.dname = '';
+                this.selectAll()
+            },
+            //播放暂停
+            bs() {
+                var play = document.getElementById("play");
+                var _this = this;
+                if (play.paused == true) {
+                    play.play();
+                    _this.playtype = "success"
+                } else {
+                    play.pause();
+                    _this.playtype = "danger"
+                }
+
+            },
+            //批量删除
+            mdel() {
+
+                this.$confirm('批量删除项目, 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    var _this = this;
+                    axios({
+                        method: "post",
+                        url: "/webdemo_war/item/mdel",
+                        data: _this.multipleSelection
+                    }).then(function (resp) {
+                        if (resp.data == "success") {
+                            _this.$message({
+                                message: '删除成功！',
+                                type: 'success',
+                            })
+                        } else {
+                            _this.$message.error('删除失败！');
+                        }
+
+                        _this.selectAll();
+                    })
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消删除'
+                    });
+                });
+
+
+            },
+            //播放
+            play(url) {
+                var item3 = url;
+                this.dialogFormVisible3 = true;
+                this.item3url = item3;
+            },
+            //编辑行
+            update(row) {
+                var item = row;
+                this.dialogFormVisible2 = true;
+                this.item2 = item;
+
+
+            },
+            //删除行
+            del(row) {
+                var item = row;
+                var _this = this;
+                axios({
+                    method: "post",
+                    url: "/webdemo_war/item/del",
+                    data: item
+                }).then(function (resp) {
+                    if (resp.data == "success") {
+                        _this.$message({
+                            message: '删除成功！',
+                            type: 'success',
+                        })
+                    } else {
+                        _this.$message.error('删除失败！');
+                    }
+
+                    _this.selectAll();
+                })
+            },
+            //查询所有,发送异步请求，获取数据
+            selectAll() {
+                var _this = this;
+                axios({
+                    method: "get",
+                    url: "/webdemo_war/item/page?currentPage="+ _this.currentPage + "&pageSize=" + _this.pageSize +"&name="+ _this.sname + "&dname=" +_this.dname,
+                }).then(function (resp) {
+                    _this.tableData = resp.data.pageItems;
+                    _this.totalCounts = resp.data.counts
+                    _this.$message({
+                        message: '搜索完成！',
+                        type: 'success',
+                    })
+                })
+            },
+            //表格栏样式
+            tableRowClassName({row, rowIndex}) {
+                if (rowIndex % 2 === 3) {
+                    return 'warning-row';
+                } else if (rowIndex % 2 === 0) {
+                    return 'success-row';
+                }
+                return '';
+            },
+            //复选框方法
+            handleSelectionChange(val) {
+                this.multipleSelection = val;
+            },
+            //搜素栏方法
+            onSubmit() {
+                console.log('submit!');
+            },
+            //新增项目方法
+            onAddItem() {
+                //console.log(this.Item);
+                var _this = this;
+                axios({
+                    method: "post",
+                    url: "/webdemo_war/item/add",
+                    data: _this.item
+                }).then(function (resp) {
+                    if (resp.data == "success") {
+                        _this.$message({
+                            message: '添加成功！',
+                            type: 'success',
+                        })
+                    } else {
+                        _this.$message.error('名称重复，添加失败！');
+                    }
+                    _this.dialogFormVisible = false;
+                    _this.selectAll();
+                })
+            },
+            //修改项目方法
+            onAddItem2() {
+                var _this = this;
+                axios({
+                    method: "post",
+                    url: "/webdemo_war/item/update",
+                    data: _this.item2
+                }).then(function (resp) {
+                    if (resp.data == "success") {
+                        _this.$message({
+                            message: '名称改动，新增一项！',
+                            type: 'success',
+                        })
+                    } else {
+                        _this.$message({
+                            message: '修改成功！',
+                            type: 'success',
+                        })
+                    }
+                    _this.dialogFormVisible2 = false;
+                    _this.selectAll();
+                })
+            },
+            //批量修改ipv6地址
+            onAddItem4() {
+                var _this = this;
+                axios({
+                    method: "post",
+                    url: "/webdemo_war/item/updateip",
+                    data: _this.item4
+                }).then(function (resp) {
+                    if (resp.data == "success") {
+                        _this.$message({
+                            message: '修改成功！',
+                            type: 'success',
+                        })
+                    } else {
+                        _this.$message({
+                            message: '修改失败！',
+                            type: 'success',
+                        })
+                    }
+                    _this.dialogFormVisible4 = false;
+                    _this.selectAll();
+                })
+            },
+            //分页工具条方法
+            handleSizeChange(val) {
+                //console.log(`每页 ${val} 条`);
+                this.pageSize = val;
+                this.selectAll();
+            },
+            handleCurrentChange(val) {
+                //console.log(`当前页: ${val}`);
+                this.currentPage = val;
+                this.selectAll();
+            }
+        },
+        data() {
+            return {
+                //搜素栏
+                sname:'',
+                dname:'',
+
+                //表格
+                tableData: [{
+                    name: '未连接服务器！',
+                    describe: '未连接服务器！',
+                    url: '3'
+                }],
+                //复选框
+                multipleSelection: [],
+                //搜索栏
+                formInline: {
+                    name: '',
+                    describe: ''
+                },
+                //新增对话框可见
+                dialogFormVisible: false,
+                //编辑对话框可见
+                dialogFormVisible2: false,
+                //播放对话框可见
+                dialogFormVisible3: false,
+                //批量修改ipv6地址
+                dialogFormVisible4: false,
+                //新增表单
+                item: {
+                    name: '',
+                    describe: '',
+                    url: ''
+                },
+                //修改表单
+                item2: {
+                    name: '',
+                    describe: '',
+                    url: ''
+                },
+                //批量修改ipv6地址
+                item4:'',
+                item3url: 'https://ws.stream.qqmusic.qq.com/C400001f7dR10L1zlw.m4a?guid=125150633&vkey=571765873C49F6C1F69244F33BEA5CC592FA166BE27AAF67F9C3AB2C50A7D32CAB1F9A003AF6BDE7F76340FBF538D73718B8950827D7799D&uin=&fromtag=103032',
+                formLabelWidth: '120px',
+                //分页工具条
+                totalCounts:'',
+                currentPage: 1,
+                pageSize:10,
+                //播放暂停按钮
+                playtype: ""
+            }
+        }
+
+
+    })
+
+
+</script>
+</body>
+</html>
